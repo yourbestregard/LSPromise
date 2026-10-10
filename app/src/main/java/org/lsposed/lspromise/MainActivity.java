@@ -26,6 +26,7 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -149,10 +150,10 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 try {
                     controller = intent.getExtras().getBinder("CONTROLLER");
                     tv.append("networkstack binder received\n");
-                    //patchMod.setVisibility(View.VISIBLE);
-                    //patchLibc.setVisibility(View.VISIBLE);
-                    //patchCxx.setVisibility(View.VISIBLE);
-                    //forkProcess.setVisibility(View.VISIBLE);
+                    patchMod.setVisibility(View.VISIBLE);
+                    patchLibc.setVisibility(View.VISIBLE);
+                    patchCxx.setVisibility(View.VISIBLE);
+                    forkProcess.setVisibility(View.VISIBLE);
                     patchAll.setVisibility(View.VISIBLE);
                 } catch (Throwable t) {
                     Log.e(TAG, "resolve binder", t);
@@ -165,14 +166,23 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
     private void copyBundledKsud() {
         try {
-            var f = new File(getApplicationInfo().nativeLibraryDir, "libksud.so");
-            var src = f.toPath();
-            var dst = new File(getFilesDir().getParent(), "ksud").toPath();
+            File srcFile = new File(getApplicationInfo().nativeLibraryDir, "libksud.so");
+
+            File dstDir  = new File(getApplicationInfo().dataDir, "ksud");
+            File dstFile = new File(dstDir, "libksud.so");
+
+            if (!dstDir.exists() && !dstDir.mkdirs()) {
+                throw new IOException("gagal membuat folder " + dstDir);
+            }
+
+            Path src = srcFile.toPath();
+            Path dst = dstFile.toPath();
             tv.append("copy " + src + " -> " + dst + "\n");
+
             Files.copy(src, dst, StandardCopyOption.REPLACE_EXISTING);
             Files.setPosixFilePermissions(dst, PosixFilePermissions.fromString("rwx------"));
         } catch (Throwable t) {
-            Log.e(TAG, "get ksu", t);
+            Log.e(TAG, "get ksud", t);
             tv.append("could not copy bundled ksud; make sure libksud.so is packaged for this device ABI\n" + t.getMessage());
         }
     }
