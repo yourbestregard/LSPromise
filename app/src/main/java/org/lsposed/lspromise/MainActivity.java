@@ -160,13 +160,12 @@ public class MainActivity extends Activity implements View.OnClickListener {
             }
         };
         registerReceiver(receiver, new IntentFilter("EVIL"), Context.RECEIVER_EXPORTED);
-        copyKsud();
+        copyBundledKsud();
     }
 
-    private void copyKsud() {
+    private void copyBundledKsud() {
         try {
-            var app = getPackageManager().getApplicationInfo("me.weishu.kernelsu", 0);
-            var f = new File(app.nativeLibraryDir, "libksud.so");
+            var f = new File(getApplicationInfo().nativeLibraryDir, "libksud.so");
             var src = f.toPath();
             var dst = new File(getFilesDir().getParent(), "ksud").toPath();
             tv.append("copy " + src + " -> " + dst + "\n");
@@ -174,7 +173,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
             Files.setPosixFilePermissions(dst, PosixFilePermissions.fromString("rwx------"));
         } catch (Throwable t) {
             Log.e(TAG, "get ksu", t);
-            tv.append("could not copy ksud, did you installed KernelSU app?\n" + t.getMessage());
+            tv.append("could not copy bundled ksud; make sure libksud.so is packaged for this device ABI\n" + t.getMessage());
         }
     }
 
